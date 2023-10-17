@@ -4,7 +4,7 @@ import { firestore, collection, addDoc, MESSAGES, serverTimestamp } from './fire
 import { useEffect, useState } from 'react';
 import { TextInput } from 'react-native';
 import { Button } from 'react-native';
-import { QuerySnapshot, onSnapshot, query } from 'firebase/firestore';
+import { QuerySnapshot, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { ScrollView } from 'react-native';
 import  Constants from 'expo-constants';
 import { convertFirebaseTimeStampToJS } from './helpers/Functions';
@@ -23,22 +23,23 @@ export default function App() {
   }
 
     useEffect(()=>{
-      const q = query(collection(firestore, MESSAGES))
+      const q = query(collection(firestore, MESSAGES),orderBy('created', 'desc'))
 
       const unsubscribe = onSnapshot(q,(querySnapshot)=>{
         const tempMessages = []
 
         querySnapshot.forEach((doc)=>{
-          const messageObject = {
+          const messageObject={
             id: doc.id,
             text: doc.data().text,
             created: convertFirebaseTimeStampToJS(doc.data().created)
           }
           tempMessages.push(messageObject)
         })
+          setMessages(tempMessages)
+        })
         
-      })
-        return()=>{
+        return () => {
           unsubscribe()
         }
       
@@ -55,14 +56,16 @@ export default function App() {
             </View>
           ))
         }
+      
       </ScrollView>
-
-      <TextInput placeholder='send message' 
+      <TextInput style= {styles.input}
+      placeholder='send message' 
       value={newMessage} 
       onChangeText={text=>setNewMessage(text)}></TextInput>
       <Button title='Send' type="button" onPress={save}></Button>
       
       <StatusBar style="auto" />
+      
     </SafeAreaView>
   );
 }
@@ -71,7 +74,7 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: Constants.statusBarHeight,
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'burlywood',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -79,7 +82,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 10,
     marginBottom: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: 'cornsilk',
     borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 5,
@@ -87,6 +90,11 @@ const styles = StyleSheet.create({
     marginRight: 10
    },
    messageInfo:{
-    fontSize: 12
+    fontSize: 12,
+   },
+   input:{
+    borderWidth: 1,
+    margin: 15,
+
    }
 });
